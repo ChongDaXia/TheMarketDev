@@ -6,14 +6,15 @@ import java.sql.Timestamp;
 
 /*
 * 
-* gen by beetlsql 2019-04-14
+* gen by beetlsql 2019-04-21
 */
 public class BMember   implements Serializable{
 	//会员id
 	private Integer memberId ;
 	//积分
 	private Integer integration ;
-	private Integer storeId ;
+	//租户id
+	private Integer userId ;
 	//联系电话
 	private String mobileNo ;
 	//姓名
@@ -38,11 +39,11 @@ public class BMember   implements Serializable{
 		this.integration = integration;
 	}
 	
-	public Integer getStoreId(){
-		return  storeId;
+	public Integer getUserId(){
+		return  userId;
 	}
-	public void setStoreId(Integer storeId ){
-		this.storeId = storeId;
+	public void setUserId(Integer userId ){
+		this.userId = userId;
 	}
 	
 	public String getMobileNo(){

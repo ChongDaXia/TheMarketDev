@@ -72,11 +72,32 @@ public class StoreDao {
 		return result;
 	}
 	
+	// 更新租赁表
+	public Integer updateRent(BRent rent) {
+		BRent therent=new BRent();
+		therent.setRentId(rent.getRentId());
+		therent.setUserId(rent.getUserId());
+		therent.setStoreId(rent.getStoreId());
+		therent.setCreateTime(rent.getCreateTime());
+		therent.setRent(rent.getRent());
+		Integer result=sqlManager.updateTemplateById(therent);
+		return result;
+	}
+	
 	//删除门店
 	public Integer deleteStore(BStore store){
 		BStore thestore=new BStore();
 		thestore.setStoreId(store.getStoreId());
 		Integer result=sqlManager.update("bStore.deleteStore", thestore);
+		return result;
+	}
+	
+	//删除租赁表
+	public Integer deleteRent(BRent rent){
+		BRent therent=new BRent();
+		therent.setRentId(rent.getRentId());
+		therent.setStoreId(rent.getStoreId());
+		Integer result=sqlManager.update("bStore.deleteRent", therent);
 		return result;
 	}
 }

@@ -1,5 +1,6 @@
 package com.zhbit.market.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,7 @@ public class StoreController {
 	@Autowired
 	private StoreService storeService;
 	
-	//门店管理（保存新门店）
+	//保存新门店
 	@PostMapping("/home/addnewstore")
 	public @ResponseBody Object saveNewStore(BStore store) {
 		Map<String,Object> result=new HashMap<String,Object>();
@@ -40,11 +41,17 @@ public class StoreController {
 	@PostMapping("/home/addnewrent")
 	public @ResponseBody Object saveNewRent(BRent rent) {
 		Map<String,Object> result=new HashMap<String,Object>();
+		rent.setCreateTime(new java.sql.Date((new java.util.Date()).getTime()));
 		Integer theresult=storeService.insertNewRent(rent);
-		System.out.println("更新数："+theresult);
 		if(theresult>0) {
-			result.put("code",200);
-			return result;
+			BStore store=new BStore();
+			store.setStoreId(rent.getStoreId());
+			store.setRentStatus(1);
+			Integer thestore=storeService.updateStore(store);
+			if(thestore>0) {
+				result.put("code",200);
+				return result;
+			}
 		}
 		result.put("code", 500);
 		return result;
@@ -120,18 +127,18 @@ public class StoreController {
 		List<BStore> thestore=storeService.getStore(store);
 		if(thestore.size()!=0) {
 			result.put("stores", thestore);
-			BRent[] rents=new BRent[thestore.size()];
+			List<BRent> rents=new ArrayList<BRent>();
 			for(int i=0;i<thestore.size();i++) {
 				if(!thestore.get(i).getRentStatus().equals(0)) {
 					BRent therent=new BRent();
 					therent.setStoreId(thestore.get(i).getStoreId());
 					List<BRent> therents=storeService.getRent(therent);
 					if(therents.size()!=0) {
-						rents[i]=therents.get(0);
+						rents.add(therents.get(0));
 					}
 				}
 			}
-			if(rents[0]!=null) {
+			if(rents.size()!=0) {
 				result.put("code", 200);
 				result.put("rents", rents);
 				return result;
@@ -157,6 +164,20 @@ public class StoreController {
 		return result;
 	}
 	
+	//更新租赁表信息
+	@PostMapping("/home/updateRent")
+	public @ResponseBody Object updateRent(BRent rent) {
+		Map<String,Object> result=new HashMap<String,Object>();
+		rent.setCreateTime(new java.sql.Date((new java.util.Date()).getTime()));
+		Integer theresult=storeService.updateRent(rent);
+		if(theresult>0) {
+			result.put("code",200);
+			return result;
+		}
+		result.put("code", 500);
+		return result;
+	}
+	
 	//删除门店
 	@GetMapping("/home/deleteOneStore")
 	public @ResponseBody Object deleteOneStore(String storeId) {
@@ -168,17 +189,52 @@ public class StoreController {
 				BStore store=new BStore();
 				store.setStoreId(json.getInteger(i));
 				List<BStore> getStore=storeService.getStore(store);
+				System.out.println("店铺第一次查询："+getStore.size());
 				if(getStore.size()!=0) {
+					System.out.println("状态："+getStore.get(0).getRentStatus());
+					if(getStore.get(0).getRentStatus()==1) {
+						BRent rent=new BRent();
+						rent.setStoreId(getStore.get(0).getStoreId());
+						List<BRent> selectrent=storeService.getRent(rent);
+						System.out.println("租赁第二次查询："+selectrent.size());
+						if(selectrent.size()!=0) {
+							Integer therent=storeService.deleteRent(rent);
+							System.out.println("租赁第一次删除："+therent);
+						}
+					}
 					Integer theresult=storeService.deleteStore(store);
-					allsum++;
+					System.out.println("店铺第二次删除："+theresult);
+					if(theresult>0) {
+						allsum++;
+					}
 				}
 			}
 			if(allsum==json.size()) {
 				result.put("code", 200);
 				return result;
 			}
-			result.put("code", 300);
-			return result;
+		}
+		result.put("code", 500);
+		return result;
+	}
+	
+	//删除租赁表
+	@GetMapping("/home/deleteRent")
+	public @ResponseBody Object deleteRent(BRent rent) {
+		Map<String,Object> result=new HashMap<String,Object>();
+		List<BRent> rents=storeService.getRent(rent);
+		if(rents.size()!=0) {
+			Integer therent=storeService.deleteRent(rent);
+			if(therent>0) {
+				BStore store=new BStore();
+				store.setStoreId(rent.getStoreId());
+				store.setRentStatus(0);
+				Integer thestore=storeService.updateStore(store);
+				if(thestore>0) {
+					result.put("code", 200);
+					return result;
+				}
+			}
 		}
 		result.put("code", 500);
 		return result;

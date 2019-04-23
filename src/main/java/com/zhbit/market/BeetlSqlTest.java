@@ -36,7 +36,7 @@ public class BeetlSqlTest {
 //			System.out.println(user.getName());
 //			sqlManager.genPojoCode("b_rent", "com.zhbit.market.entity");
 //			sqlManager.genPojoCode("b_take_office", "com.zhbit.market.entity");
-//			sqlManager.genPojoCode("b_purchase", "com.zhbit.market.entity");
+//			sqlManager.genPojoCode("b_member", "com.zhbit.market.entity");
 //			System.out.println("创建成功");
 		}catch(Exception e) {
 			e.printStackTrace();

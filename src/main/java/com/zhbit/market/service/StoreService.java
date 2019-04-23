@@ -43,9 +43,21 @@ public class StoreService {
 		return result;
 	}
 	
+	//更新租赁表
+	public Integer updateRent(BRent rent) {
+		Integer result=storeDao.updateRent(rent);
+		return result;
+	}
+	
 	//删除门店信息
 	public Integer deleteStore(BStore store) {
 		Integer result=storeDao.deleteStore(store);
+		return result;
+	}
+	
+	//删除租赁表
+	public Integer deleteRent(BRent rent) {
+		Integer result=storeDao.deleteRent(rent);
 		return result;
 	}
 }

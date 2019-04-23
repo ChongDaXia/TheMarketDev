@@ -45,15 +45,14 @@ delete from b_store where 1=1
 @if(!isEmpty(storeId)){
 and store_id=#storeId#
 @}
-@if(!isEmpty(storeNo)){
-and store_no=#storeNo#
+
+deleteRent
+===
+*删除租赁表
+delete from b_rent where 1=1
+@if(!isEmpty(rentId)){
+and rent_id=#rentId#
 @}
-@if(!isEmpty(address)){
-and address=#address#
-@}
-@if(!isEmpty(area)){
-and area=#area#
-@}
-@if(!isEmpty(rentStatus)){
-and rent_status=#rentStatus#
+@if(!isEmpty(storeId)){
+and store_id=#storeId#
 @}
