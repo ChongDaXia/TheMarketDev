@@ -6,6 +6,7 @@ import org.beetl.sql.core.SQLManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.zhbit.market.entity.BSalary;
 import com.zhbit.market.entity.BStaff;
 import com.zhbit.market.entity.BTakeOffice;
 
@@ -85,5 +86,40 @@ public class StaffDao {
 		theoffice.setPost(office.getPost());
 		Integer offices=sqlManager.updateTemplateById(theoffice);
 		return offices;
+	}
+	
+	//插入工资表
+	public Integer insertNewSalary(BSalary salary) {
+		BSalary thesalary=new BSalary();
+		thesalary.setSalary(salary.getSalary());
+		thesalary.setStaffId(salary.getStaffId());
+		thesalary.setSalaryStatus(salary.getSalaryStatus());
+		thesalary.setCreateTime(salary.getCreateTime());
+		Integer result=sqlManager.insertTemplate(thesalary,true);
+		return result;
+	}
+	
+	//更新工资表
+	public Integer updateSalary(BSalary salary) {
+		BSalary thesalary=new BSalary();
+		thesalary.setSalaryId(salary.getSalaryId());
+		thesalary.setSalary(salary.getSalary());
+		thesalary.setStaffId(salary.getStaffId());
+		thesalary.setSalaryStatus(salary.getSalaryStatus());
+		thesalary.setCreateTime(salary.getCreateTime());
+		Integer salarys=sqlManager.updateTemplateById(thesalary);
+		return salarys;
+	}
+		
+	//查询工资表
+	public List<BSalary> getSalary(BSalary salary){
+		BSalary thesalary=new BSalary();
+		thesalary.setSalaryId(salary.getSalaryId());
+		thesalary.setSalary(salary.getSalary());
+		thesalary.setStaffId(salary.getStaffId());
+		thesalary.setSalaryStatus(salary.getSalaryStatus());
+		thesalary.setCreateTime(salary.getCreateTime());
+		List<BSalary> salarys=sqlManager.select("bStaff.selectSalary", BSalary.class,thesalary);
+		return salarys;
 	}
 }

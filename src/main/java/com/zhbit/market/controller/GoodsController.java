@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.zhbit.market.entity.BGoods;
+import com.zhbit.market.entity.BMember;
 import com.zhbit.market.entity.BPurchase;
 import com.zhbit.market.entity.BPurchasesItem;
 import com.zhbit.market.entity.BSalesItem;
@@ -23,6 +25,7 @@ import com.zhbit.market.entity.BSupplier;
 import com.zhbit.market.entity.BTakeOffice;
 import com.zhbit.market.entity.BUser;
 import com.zhbit.market.service.GoodsService;
+import com.zhbit.market.service.MemberService;
 import com.zhbit.market.service.StaffService;
 
 @Controller
@@ -32,6 +35,8 @@ public class GoodsController {
 	private GoodsService goodsService;
 	@Autowired
 	private StaffService staffService;
+	@Autowired
+	private MemberService memberService;
 	
 	//商品管理（保存新商品）
 	@PostMapping("/home/addnewgoods")
@@ -49,16 +54,21 @@ public class GoodsController {
 	
 	//获取所有商品
 	@GetMapping("/home/getallgoods")
-	public @ResponseBody Object getAllGoods(BGoods goods) {
+	public @ResponseBody Object getAllGoods(String tempdate) {
 		Map<String,Object> result=new HashMap<String,Object>();
-		List<BGoods> getgoods=goodsService.getGoods(goods);
-		if(getgoods.size()!=0) {
-			BGoods[] goodss=new BGoods[getgoods.size()];
-			for(int i=0;i<getgoods.size();i++) {
-				goodss[i]=getgoods.get(i);
+		JSONArray json=JSONObject.parseArray(tempdate);
+		List<BGoods> allgoods=new ArrayList();
+		if(json.size()!=0) {
+			for(int i=0;i<json.size();i++) {
+				BGoods goods=new BGoods();
+				goods.setGoodsId(json.getInteger(i));
+				List<BGoods> getgoods=goodsService.getGoods(goods);
+				if(getgoods.size()!=0) {
+					allgoods.add(getgoods.get(0));
+				}
 			}
 			result.put("code", 200);
-			result.put("goodss",goodss);
+			result.put("allgoods",allgoods);
 			return result;
 		}
 		result.put("code", 500);
@@ -207,6 +217,7 @@ public class GoodsController {
 							BGoods goods=new BGoods();
 							goods.setName(job.getString("name"));
 							goods.setAmount(job.getInteger("amount"));
+							goods.setSalesCount(0);
 							System.out.println("创建商品");
 							Integer thegoods=goodsService.insertNewGoods(goods);
 							if(thegoods>0) {
@@ -220,6 +231,68 @@ public class GoodsController {
 									item.setPurchaseId(thepurchase.get(0).getPurchaseId());
 									System.out.println("创建采购项");
 									Integer theitem=goodsService.insertNewPurchaseItem(item);
+								}
+							}
+						}
+					}
+					result.put("code",200);
+					return result;
+				}
+			}
+		}
+		result.put("code", 500);
+		return result;
+	}
+	
+	//插入销售单信息
+	@PostMapping("/home/addnewsales")
+	public @ResponseBody Object addNewSales(BSalesSlip sales,String saleNewGoodsForm) {
+		Map<String,Object> result=new HashMap<String,Object>();
+		sales.setCreateTime(new java.sql.Date((new java.util.Date()).getTime()));
+		System.out.println("创建销售单");
+		Integer theresult=goodsService.insertNewSalesSlip(sales);
+		if(theresult>0) {
+			System.out.println("查询销售单");
+			List<BSalesSlip> thesales=goodsService.getSalesSlip(sales);
+			if(thesales.size()!=0) {
+				if(thesales.get(0).getMemberId()!=null) {
+					String num=thesales.get(0).getTotalPrice().toString();
+					Integer innum=Integer.parseInt(num)*10;
+					BMember member=new BMember();
+					member.setMemberId(thesales.get(0).getMemberId());
+					System.out.println("查询会员表");
+					List<BMember> themember=memberService.getMember(member);
+					if(themember.size()!=0) {
+						member.setIntegration(themember.get(0).getIntegration()+innum);
+						System.out.println("更新会员积分");
+						Integer them=memberService.updateMember(member);
+					}
+				}
+				JSONArray json=JSONObject.parseArray(saleNewGoodsForm);
+				if(json.size()!=0) {
+					for(int i=0;i<json.size();i++) {
+						JSONObject job=json.getJSONObject(i);
+						System.out.println("商品数据："+job);
+						if(job.get("goodsId") != null) {
+							BGoods goods=new BGoods();
+							goods.setGoodsId(job.getInteger("goodsId"));
+							System.out.println("查询商品数量");
+							List<BGoods> thegoods=goodsService.getGoods(goods);
+							if(thegoods.size()!=0) {
+								Integer salessum=thegoods.get(0).getAmount()-job.getInteger("amount");
+								Integer allsum=thegoods.get(0).getSalesCount()+job.getInteger("amount");
+								goods.setSalesCount(allsum);
+								goods.setAmount(salessum);
+								System.out.println("更新商品数量");
+								Integer updategoods=goodsService.updateGoods(goods);
+								if(updategoods>0) {
+									BSalesItem item=new BSalesItem();
+									item.setGoodsId(job.getInteger("goodsId"));
+									item.setAmount(job.getInteger("amount"));
+									item.setPrice(job.getBigDecimal("price"));
+									item.setSalesSlipId(thesales.get(0).getSalesSlipId());
+									System.out.println("创建销售项");
+									Integer theitem=goodsService.insertNewSalesItem(item);
 								}
 							}
 						}

@@ -1,5 +1,7 @@
 package com.zhbit.market.controller;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.zhbit.market.entity.BSalary;
 import com.zhbit.market.entity.BStaff;
 import com.zhbit.market.entity.BTakeOffice;
 import com.zhbit.market.service.StaffService;
@@ -101,6 +105,90 @@ public class StaffController {
 		List<BTakeOffice> staff=staffService.getTakeOffice(office);
 		if(staff.size()!=0) {
 			result.put("staff", staff);
+			result.put("code", 200);
+			return result;
+		}
+		result.put("code", 500);
+		return result;
+	}
+	
+	//插入工资表
+	@PostMapping("/home/saveSalary")
+	public @ResponseBody Object saveSalary(BSalary salary) {
+		Map<String,Object> result=new HashMap<String,Object>();
+		salary.setCreateTime(new java.sql.Date((new java.util.Date()).getTime()));
+		Integer salarys=staffService.insertNewSalary(salary);
+		if(salarys>0) {
+			result.put("code", 200);
+			return result;
+		}
+		result.put("code", 500);
+		return result;
+	}
+	
+	//更新工资表状态
+	@PostMapping("/home/updateSalary")
+	public @ResponseBody Object updateSalary(BSalary salary,String Time) throws ParseException {
+		Map<String,Object> result=new HashMap<String,Object>();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		System.out.println("获取员工工资单");
+		List<BSalary> thes=staffService.getSalary(salary);
+		if(thes.size()!=0) {
+			for(int i=0;i<thes.size();i++) {
+				String temptime=sdf.format(thes.get(i).getCreateTime());
+				if(Time.equals(temptime)) {
+					salary.setSalaryId(thes.get(i).getSalaryId());
+//					salary.setCreateTime(new java.sql.Date((new java.util.Date()).getTime()));
+					salary.setSalaryStatus(1);
+					System.out.println("修改员工工资单状态");
+					Integer theresult=staffService.updateSalary(salary);
+					if(theresult>0) {
+						result.put("code", 200);
+						return result;
+					}
+				}
+			}
+		}
+		result.put("code", 500);
+		return result;
+	}
+	
+	//获取工资表
+	@GetMapping("/home/getSalary")
+	public @ResponseBody Object getSalary(BTakeOffice office) {
+		Map<String,Object> result=new HashMap<String,Object>();
+		System.out.println("获取店铺的员工");
+		List<BTakeOffice> theallstaff=staffService.getTakeOffice(office);
+		if(theallstaff.size()!=0) {
+			List<BStaff> staffs=new ArrayList<BStaff>();
+			List<BSalary> salarys=new ArrayList<BSalary>();
+			//（一个雇主有多个员工）每一个员工
+			for(int i=0;i<theallstaff.size();i++) {
+				//员工id+员工表=员工姓名
+				BStaff thestaff=new BStaff();
+				thestaff.setStaffId(theallstaff.get(i).getStaffId());
+				System.out.println("获取员工信息");
+				List<BStaff> thestaffresulet=staffService.getStaff(thestaff);
+				if(thestaffresulet.size()!=0) {
+					staffs.add(thestaffresulet.get(0));
+				}
+				// 员工id+工资表=工资表id
+				BSalary salary=new BSalary();
+				salary.setStaffId(theallstaff.get(i).getStaffId());
+				System.out.println("获取员工薪资信息");
+				List<BSalary> thesalarys=staffService.getSalary(salary);
+				if(thesalarys.size()!=0) {
+					for(int j=0;j<thesalarys.size();j++) {
+						salarys.add(thesalarys.get(j));
+					}
+				}
+			}
+			//任职表
+			result.put("offices", theallstaff);
+			//员工信息
+			result.put("staffs", staffs);
+			//薪资信息
+			result.put("salarys", salarys);
 			result.put("code", 200);
 			return result;
 		}

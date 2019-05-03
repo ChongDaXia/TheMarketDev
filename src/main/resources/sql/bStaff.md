@@ -37,3 +37,23 @@ and wages=#wages#
 @if(!isEmpty(post)){
 and post=#post#
 @}
+
+selectSalary
+===
+*获取工资表
+select * from b_salary where 1=1
+@if(!isEmpty(salaryId)){
+and salary_id=#salaryId#
+@}
+@if(!isEmpty(staffId)){
+and staff_id=#staffId#
+@}
+@if(!isEmpty(salary)){
+and salary=#salary#
+@}
+@if(!isEmpty(salaryStatus)){
+and salary_status=#salaryStatus#
+@}
+@if(!isEmpty(createTime)){
+and create_time=#createTime#
+@}

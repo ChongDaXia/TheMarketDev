@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.zhbit.market.Dao.StaffDao;
+import com.zhbit.market.entity.BSalary;
 import com.zhbit.market.entity.BStaff;
 import com.zhbit.market.entity.BTakeOffice;
 
@@ -47,5 +48,23 @@ public class StaffService {
 	public Integer updateTakeOffice(BTakeOffice office) {
 		Integer offices=staffDao.updateTakeOffice(office);
 		return offices;
+	}
+	
+	//保存工资表
+	public Integer insertNewSalary(BSalary salary) {
+		Integer salarys=staffDao.insertNewSalary(salary);
+		return salarys;
+	}
+	
+	//更新工资表
+	public Integer updateSalary(BSalary salary) {
+		Integer salarys=staffDao.updateSalary(salary);
+		return salarys;
+	}
+	
+	//获取工资表
+	public List<BSalary> getSalary(BSalary salary){
+		List<BSalary> salarys=staffDao.getSalary(salary);
+		return salarys;
 	}
 }

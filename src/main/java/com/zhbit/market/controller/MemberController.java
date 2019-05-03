@@ -24,6 +24,9 @@ public class MemberController {
 	@PostMapping("/home/addnewmember")
 	public @ResponseBody Object saveNew(BMember member) {
 		Map<String,Object> result=new HashMap<String,Object>();
+		if(member.getIntegration()==null) {
+			member.setIntegration(0);
+		}
 		Integer theresult=memberService.insertNewMember(member);
 		if(theresult>0) {
 			result.put("code",200);
